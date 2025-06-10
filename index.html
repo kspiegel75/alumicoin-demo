@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alumibank – Alumicoin Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f9f9f9;
+    }
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+      cursor: pointer;
+    }
+    #status {
+      margin: 1rem 0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Welcome to Alumibank</h1>
+  <p>This demo shows ALUMICOIN (ALUMI) integration using your MetaMask wallet on the Sepolia testnet.</p>
+
+  <button onclick="connectWallet()">Connect Wallet</button>
+  <div id="status">Wallet not connected.</div>
+
+  <div id="walletSection" style="display:none;">
+    <p><strong>Connected Address:</strong> <span id="walletAddress"></span></p>
+    <p><strong>ALUMICOIN Balance:</strong> <span id="tokenBalance">Loading...</span> ALUMI</p>
+    <button onclick="addTokenToMetaMask()">Add ALUMICOIN to MetaMask</button>
+  </div>
+
+  <script>
+    const tokenAddress = "0x7153ccCB1555870EA68b7122AEbCA1eCc52FC28A"; // Replace with your actual contract address
+    const tokenDecimals = 18;
+    const tokenSymbol = "ALUMI";
+
+    const tokenABI = [
+      "function balanceOf(address) view returns (uint256)",
+      "function decimals() view returns (uint8)"
+    ];
+
+    let provider, signer, userAddress;
+
+    async function connectWallet() {
+      if (!window.ethereum) {
+        console.warn("MetaMask not detected");
+        return;
+      }
+
+      try {
+        await ethereum.request({ method: 'eth_requestAccounts' });
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+
+        document.getElementById("status").textContent = "Wallet connected.";
+        document.getElementById("walletAddress").textContent = userAddress;
+        document.getElementById("walletSection").style.display = "block";
+
+        getTokenBalance();
+      } catch (err) {
+        console.error(err);
+        document.getElementById("status").textContent = "Connection failed.";
+      }
+    }
+
+    async function getTokenBalance() {
+      try {
+        const tokenContract = new ethers.Contract(tokenAddress, tokenABI, provider);
+        const rawBalance = await tokenContract.balanceOf(userAddress);
+        const balance = ethers.utils.formatUnits(rawBalance, tokenDecimals);
+        document.getElementById("tokenBalance").textContent = balance;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("tokenBalance").textContent = "Error";
+      }
+    }
+
+    async function addTokenToMetaMask() {
+      try {
+        await ethereum.request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'ERC20',
+            options: {
+              address: tokenAddress,
+              symbol: tokenSymbol,
+              decimals: tokenDecimals,
+            },
+          },
+        });
+      } catch (error) {
+        console.error("Failed to add token:", error);
+      }
+    }
+  </script>
+
+</body>
+</html>
