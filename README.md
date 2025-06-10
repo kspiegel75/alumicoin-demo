@@ -1,0 +1,1 @@
+# alumicoin-demo
