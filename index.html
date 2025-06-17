@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Alumibank - Get ALUMICOIN</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+</head>
+<body>
+  <h1>Welcome to Alumibank</h1>
+  <p>This demo shows ALUMICOIN (ALUMI) integration using your MetaMask wallet on the Sepolia testnet.</p>
+
+  <button id="connectButton">Connect Wallet</button>
+  <button id="getAlumiButton" disabled>Get 100 ALUMICOIN</button>
+
+  <p id="status"></p>
+
+  <script>
+    const apiUrl = "https://alumibank-token-api.onrender.com/send-alumi";
+
+    let userAddress;
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+        document.getElementById("status").innerText = `Connected: ${userAddress}`;
+        document.getElementById("getAlumiButton").disabled = false;
+      } else {
+        alert("MetaMask not detected. Please install MetaMask.");
+      }
+    }
+
+    async function requestTokens() {
+      if (!userAddress) return;
+
+      document.getElementById("status").innerText = "Sending transaction...";
+
+      try {
+        const res = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ to: userAddress }),
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById("status").innerText = `Transaction sent: ${data.txHash}`;
+        } else {
+          document.getElementById("status").innerText = `Error: ${data.error}`;
+        }
+      } catch (err) {
+        document.getElementById("status").innerText = `Error: ${err.message}`;
+      }
+    }
+
+    document.getElementById("connectButton").onclick = connectWallet;
+    document.getElementById("getAlumiButton").onclick = requestTokens;
+  </script>
+</body>
+</html>
