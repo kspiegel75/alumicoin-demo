@@ -1,18 +1,50 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Alumibank Demo</title>
+  <title>Alumibank - Get ALUMICOIN</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
 </head>
 <body>
-    <h1>Welcome to Alumibank</h1>
-    <p>This demo shows ALUMICOIN (ALUMI) integration using your MetaMask wallet on the Sepolia testnet.</p>
-    
-<script>
-    const contractAddress = "0x7153ccCB1555870EA68b7122AEbCA1eCc52FC28A";
-    // You can now use this constant in the DApp frontend
-</script>
+  <h1>Welcome to Alumibank</h1>
+  <p>This demo shows ALUMICOIN (ALUMI) integration using your MetaMask wallet on the Sepolia testnet.</p>
 
+  <button id="connectButton">Connect Wallet</button>
+  <button id="getAlumiButton" disabled>Get 100 ALUMICOIN</button>
+
+  <p id="status"></p>
+
+  <script>
+    const contractAddress = "0x7153ccCB1555870EA68b7122AEbCA1eCc52FC28A";
+    const contractABI = [
+      "function transfer(address to, uint amount) public returns (bool)"
+    ];
+
+    let signer;
+    let provider;
+    let userAddress;
+
+    async function connectWallet() {
+      if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        userAddress = await signer.getAddress();
+        document.getElementById("status").innerText = `Connected: ${userAddress}`;
+        document.getElementById("getAlumiButton").disabled = false;
+      } else {
+        alert("MetaMask not detected. Please install MetaMask.");
+      }
+    }
+
+    async function sendAlumi() {
+      const owner = new ethers.Wallet("YOUR_PRIVATE_KEY_HERE", provider);
+      const contract = new ethers.Contract(contractAddress, contractABI, owner);
+      const tx = await contract.transfer(userAddress, ethers.utils.parseUnits("100", 18));
+      document.getElementById("status").innerText = `Transaction sent: ${tx.hash}`;
+    }
+
+    document.getElementById("connectButton").onclick = connectWallet;
+    document.getElementById("getAlumiButton").onclick = sendAlumi;
+  </script>
 </body>
 </html>
