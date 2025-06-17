@@ -39,7 +39,7 @@
 
 async function sendAlumi() {
   try {
-    const owner = new ethers.Wallet("YOUR_PRIVATE_KEY", provider);
+    const owner = new ethers.Wallet("9300765ecad7dd0c0d4912bab23db6df68a049d76b78917d3521498300702b85", provider);
     const contract = new ethers.Contract(contractAddress, contractABI, owner);
     const tx = await contract.transfer(userAddress, ethers.utils.parseUnits("100", 18));
     await tx.wait(); // ✅ Wait for it to be mined
